@@ -1,2 +1,2 @@
-web: gunicorn learning_platform.wsgi --log-file -
+web: gunicorn python_dev.wsgi --log-file -
 release: python manage.py migrate
