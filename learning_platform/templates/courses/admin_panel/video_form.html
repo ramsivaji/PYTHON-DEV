@@ -1,0 +1,63 @@
+{% extends 'courses/admin_panel/admin_base.html' %}
+
+{% block title %}{{ title }} - Video{% endblock %}
+{% block header %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-3">
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="row">
+                        <div class="col-md-8 mb-4">
+                            <label for="{{ form.subject.id_for_label }}" class="form-label fw-bold">Subject</label>
+                            {{ form.subject }}
+                            {% if form.subject.errors %}<div class="text-danger small mt-1">{{ form.subject.errors }}
+                            </div>{% endif %}
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <label for="{{ form.number.id_for_label }}" class="form-label fw-bold">Order Number</label>
+                            {{ form.number }}
+                            {% if form.number.errors %}<div class="text-danger small mt-1">{{ form.number.errors }}
+                            </div>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">Video Title</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors }}</div>{%
+                        endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.drive_link.id_for_label }}" class="form-label fw-bold">Google Drive
+                            Link</label>
+                        {{ form.drive_link }}
+                        <div class="form-text">Paste the view or present link from Google Drive.</div>
+                        {% if form.drive_link.errors %}<div class="text-danger small mt-1">{{ form.drive_link.errors }}
+                        </div>{% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">Description</label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors
+                            }}</div>{% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <a href="{% url 'video_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i> Save
+                            Video</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}

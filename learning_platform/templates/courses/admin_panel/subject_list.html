@@ -1,0 +1,53 @@
+{% extends 'courses/admin_panel/admin_base.html' %}
+
+{% block title %}Subjects{% endblock %}
+{% block header %}Subject Management{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between mb-3">
+    <h4>All Subjects</h4>
+    <a href="{% url 'subject_create' %}" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg me-1"></i> Add
+        Subject</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col" class="ps-4">Name</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Videos</th>
+                    <th scope="col" class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subject in subjects %}
+                <tr>
+                    <td class="ps-4 fw-bold">{{ subject.name }}</td>
+                    <td class="text-secondary text-truncate" style="max-width: 300px;">
+                        {% if subject.description %}
+                        {{ subject.description }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td><span class="badge bg-info">{{ subject.videos.count }} videos</span></td>
+                    <td class="text-end pe-4">
+                        <a href="{% url 'subject_update' subject.pk %}" class="btn btn-sm btn-outline-secondary me-1"
+                            title="Edit"><i class="bi bi-pencil"></i></a>
+                        <a href="{% url 'subject_delete' subject.pk %}" class="btn btn-sm btn-outline-danger"
+                            title="Delete"><i class="bi bi-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center py-4 text-muted">No subjects found. Create one to get started!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

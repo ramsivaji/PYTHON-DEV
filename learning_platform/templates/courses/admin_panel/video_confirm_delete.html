@@ -1,0 +1,31 @@
+{% extends 'courses/admin_panel/admin_base.html' %}
+
+{% block title %}Delete Video{% endblock %}
+{% block header %}Confirm Deletion{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+        <div class="card border-danger shadow-sm">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="bi bi-exclamation-triangle-fill me-2"></i>Warning</h5>
+            </div>
+            <div class="card-body text-center p-4">
+                <h4 class="mb-3">Are you sure you want to delete this video?</h4>
+                <div class="mb-4 p-3 bg-light rounded text-start">
+                    <p class="mb-1"><strong>Title:</strong> {{ video.title }}</p>
+                    <p class="mb-1"><strong>Subject:</strong> {{ video.subject.name }}</p>
+                    <p class="mb-0"><strong>Number:</strong> {{ video.number }}</p>
+                </div>
+                <p class="text-muted mb-4">This action cannot be undone.</p>
+
+                <form method="post">
+                    {% csrf_token %}
+                    <a href="{% url 'video_list' %}" class="btn btn-outline-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-danger">Yes, Delete Video</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

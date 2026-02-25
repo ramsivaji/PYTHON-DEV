@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ video.title }} - Python DEV{% endblock %}
+
+{% block extra_head %}
+<!-- Video responsiveness CSS -->
+<style>
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%;
+        /* 16:9 Aspect Ratio */
+        height: 0;
+        overflow: hidden;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        background: #000;
+    }
+
+    .video-container iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4 mt-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'subject_detail' video.subject.id %}">{{ video.subject.name }}</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Lesson {{ video.number }}</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <span class="badge bg-secondary mb-2">Lesson {{ video.number }}</span>
+                <h2 class="fw-bold mb-0">{{ video.title }}</h2>
+            </div>
+            <div id="status-container">
+                <!-- Status button injected via JS -->
+                <button id="mark-complete-btn" class="btn btn-outline-success btn-lg disabled" style="opacity: 0">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- The Video Player iframe -->
+        <div class="video-container mb-5 mt-3 border placeholder-glow">
+            <iframe src="{{ embed_link }}" allowfullscreen="true" mozallowfullscreen="true"
+                webkitallowfullscreen="true"></iframe>
+        </div>
+
+        <!-- Video Details -->
+        <div class="card border-0 shadow-sm mb-5">
+            <div class="card-body p-4 p-md-5">
+                <h4 class="fw-bold border-bottom pb-3 mb-4">Instructor Notes</h4>
+                <div class="fs-5 text-secondary" style="line-height: 1.8;">
+                    {{ video.description|linebreaks|default:"No additional notes for this video." }}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const videoId = {{ video.id }
+    };
+    const statusContainer = document.getElementById('status-container');
+
+    let completedVideos = [];
+    try {
+        let saved = localStorage.getItem('completed_videos');
+        if (saved) {
+            completedVideos = JSON.parse(saved);
+            if (!Array.isArray(completedVideos)) completedVideos = [];
+        }
+    } catch (e) {
+        completedVideos = [];
+    }
+
+    const isCompleted = completedVideos.includes(videoId);
+
+    if (isCompleted) {
+        statusContainer.innerHTML = `
+                <div class="text-success text-end">
+                    <div class="fs-5 fw-bold"><i class="bi bi-check-circle-fill me-2"></i>Completed</div>
+                    <button class="btn btn-sm btn-link text-muted text-decoration-none mt-1" id="mark-incomplete-btn">
+                        <i class="bi bi-x-circle me-1"></i> Mark as incomplete
+                    </button>
+                </div>
+            `;
+
+        document.getElementById('mark-incomplete-btn').addEventListener('click', function () {
+            completedVideos = completedVideos.filter(id => id !== videoId);
+            localStorage.setItem('completed_videos', JSON.stringify(completedVideos));
+            location.reload();
+        });
+
+    } else {
+        statusContainer.innerHTML = `
+                <button class="btn btn-success btn-lg shadow-sm" id="mark-complete-btn">
+                    <i class="bi bi-check2 me-2"></i>Mark as Completed
+                </button>
+            `;
+
+        document.getElementById('mark-complete-btn').addEventListener('click', function () {
+            if (!completedVideos.includes(videoId)) {
+                completedVideos.push(videoId);
+                localStorage.setItem('completed_videos', JSON.stringify(completedVideos));
+
+                this.innerHTML = '<i class="bi bi-check2-all me-2"></i>Saved!';
+                this.classList.replace('btn-success', 'btn-outline-success');
+
+                setTimeout(() => {
+                    window.location.href = "{% url 'subject_detail' video.subject.id %}";
+                }, 800);
+            }
+        });
+    }
+    });
+</script>
+{% endblock %}

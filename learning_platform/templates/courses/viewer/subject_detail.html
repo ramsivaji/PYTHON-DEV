@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ subject.name }} - Python DEV{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb" class="mb-4 mt-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ subject.name }}</li>
+    </ol>
+</nav>
+
+<div class="row align-items-center mb-5 border-bottom pb-4">
+    <div class="col-md-8">
+        <h1 class="fw-bold mb-2">{{ subject.name }}</h1>
+        <p class="text-secondary fs-5">{{ subject.description }}</p>
+    </div>
+    <div class="col-md-4 mt-3 mt-md-0 d-none" id="overall-progress-card">
+        <div class="card border-0 shadow-sm bg-light">
+            <div class="card-body p-3">
+                <div class="d-flex justify-content-between text-muted small mb-2">
+                    <span class="fw-bold text-dark">Course Progress</span>
+                    <span class="progress-text fw-bold text-primary" id="overall-progress-text">0%</span>
+                </div>
+                <div class="progress" style="height: 10px;">
+                    <div class="progress-bar progress-bar-custom" id="overall-progress-bar" role="progressbar"
+                        style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4" id="video-list">
+    {% for video in videos %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 card-custom video-card" data-video-id="{{ video.id }}">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="badge bg-secondary">Lesson {{ video.number }}</span>
+                    <div class="form-check" style="z-index: 2;">
+                        <input class="form-check-input video-completion-checkbox" type="checkbox"
+                            id="check-{{ video.id }}" data-video-id="{{ video.id }}" style="cursor: pointer;">
+                        <label class="form-check-label small text-muted ms-1" for="check-{{ video.id }}"
+                            style="cursor: pointer;">Completed</label>
+                    </div>
+                </div>
+                <h5 class="card-title fw-bold mb-2">{{ video.title }}</h5>
+                <p class="text-muted small mb-0">{{ video.description|truncatewords:15 }}</p>
+            </div>
+            <div class="card-footer bg-transparent border-0 p-4 pt-0">
+                <a href="{% url 'video_play' video.id %}" class="btn btn-primary w-100 stretched-link">
+                    <i class="bi bi-play-circle me-1"></i> Watch Video
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 py-5 text-center">
+        <div class="text-muted mb-3"><i class="bi bi-camera-video display-1"></i></div>
+        <h4>No videos uploaded yet for this subject.</h4>
+        <p>Please check back later!</p>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- All Video IDs for this subject for progress calculation -->
+<div class="d-none" id="all-subject-videos">
+    {% for v in subject.videos.all %}
+    <input type="hidden" class="subject-video-id" value="{{ v.id }}">
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let completedVideos = [];
+        try {
+            let saved = localStorage.getItem('completed_videos');
+            if (saved) {
+                completedVideos = JSON.parse(saved);
+                if (!Array.isArray(completedVideos)) completedVideos = [];
+            }
+        } catch (e) {
+            completedVideos = [];
+        }
+
+        const videoCards = document.querySelectorAll('.video-card');
+        const allVideoInputs = document.querySelectorAll('#all-subject-videos .subject-video-id');
+        const totalVideos = allVideoInputs.length;
+
+        function updateProgressUI() {
+            if (totalVideos === 0) return;
+
+            document.getElementById('overall-progress-card').classList.remove('d-none');
+
+            let completedCount = 0;
+            allVideoInputs.forEach(input => {
+                if (completedVideos.includes(parseInt(input.value))) {
+                    completedCount++;
+                }
+            });
+
+            const percentage = Math.round((completedCount / totalVideos) * 100);
+            const progressBar = document.getElementById('overall-progress-bar');
+            const progressText = document.getElementById('overall-progress-text');
+
+            progressBar.style.width = percentage + '%';
+            progressBar.setAttribute('aria-valuenow', percentage);
+            progressText.textContent = percentage + '%';
+
+            if (percentage === 100) {
+                progressBar.classList.remove('progress-bar-custom', 'bg-primary');
+                progressBar.classList.add('bg-success');
+                progressText.classList.replace('text-primary', 'text-success');
+                progressText.innerHTML = '<i class="bi bi-trophy-fill me-1"></i> Fully Completed!';
+            } else {
+                progressBar.classList.remove('bg-success');
+                progressBar.classList.add('progress-bar-custom');
+                progressText.classList.remove('text-success');
+                progressText.classList.add('text-primary');
+            }
+        }
+
+        // 1. Mark individual video cards
+        videoCards.forEach(card => {
+            const videoId = parseInt(card.getAttribute('data-video-id'));
+            const checkbox = card.querySelector('.video-completion-checkbox');
+            const btn = card.querySelector('.btn');
+
+            const renderCardState = () => {
+                if (completedVideos.includes(videoId)) {
+                    card.classList.add('bg-light');
+                    btn.classList.replace('btn-primary', 'btn-outline-success');
+                    btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i> Rewatch';
+                    checkbox.checked = true;
+                } else {
+                    card.classList.remove('bg-light');
+                    btn.classList.replace('btn-outline-success', 'btn-primary');
+                    btn.innerHTML = '<i class="bi bi-play-circle me-1"></i> Watch Video';
+                    checkbox.checked = false;
+                }
+            };
+
+            renderCardState();
+
+            checkbox.addEventListener('change', function () {
+                if (this.checked) {
+                    if (!completedVideos.includes(videoId)) {
+                        completedVideos.push(videoId);
+                    }
+                } else {
+                    completedVideos = completedVideos.filter(id => id !== videoId);
+                }
+                localStorage.setItem('completed_videos', JSON.stringify(completedVideos));
+                renderCardState();
+                updateProgressUI();
+            });
+        });
+
+        // 2. Initial Progress update
+        updateProgressUI();
+    });
+</script>
+{% endblock %}
